@@ -12,5 +12,5 @@ const opciones = {
 const PORT = process.env.PORT || 3000;
 
 https.createServer(opciones, app).listen(PORT, () => {
-    console.log(`🚀 Servidor seguro ejecutándose en https://localhost:${PORT}`);
+    console.log(` Servidor seguro ejecutándose en https://localhost:${PORT}`);
 });
