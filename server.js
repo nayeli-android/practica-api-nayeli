@@ -1,0 +1,107 @@
+require('dotenv').config();
+
+const express = require('express');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const { body, validationResult } = require('express-validator');
+
+
+const app = express();
+
+
+app.use(helmet());
+
+app.use(express.json());
+
+app.use(morgan('dev'));
+
+// Endpoint de salud
+
+app.get('/api/salud', (req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        mensaje: 'Servidor funcionando correctamente'
+    });
+});
+
+// Endpoint Echo
+
+app.post(
+    '/api/echo',
+
+    body('mensaje')
+        .isString()
+        .withMessage('El mensaje debe ser texto')
+        .trim()
+        .isLength({ min: 1, max: 200 })
+        .withMessage('El mensaje debe contener entre 1 y 200 caracteres')
+        .escape(),
+
+    (req, res) => {
+
+        const errores = validationResult(req);
+
+        if (!errores.isEmpty()) {
+            return res.status(400).json({
+                errores: errores.array()
+            });
+        }
+
+        res.json({
+            recibido: req.body.mensaje
+        });
+
+    }
+);
+
+
+// Endpoint Registro
+
+app.post(
+    '/api/registro',
+
+    body('nombre')
+        .trim()
+        .notEmpty()
+        .withMessage('El nombre es obligatorio')
+        .escape(),
+
+    body('correo')
+        .trim()
+        .isEmail()
+        .withMessage('Debe ingresar un correo válido')
+        .normalizeEmail(),
+
+    (req, res) => {
+
+        const errores = validationResult(req);
+
+        if (!errores.isEmpty()) {
+            return res.status(400).json({
+                errores: errores.array()
+            });
+        }
+
+        /*
+        Principio de Codificación Segura aplicado:
+
+        Nunca confiar en la entrada del usuario.
+
+        Se valida que el nombre no esté vacío y que el correo
+        tenga un formato válido antes de procesar la información,
+        evitando el ingreso de datos maliciosos o incorrectos.
+        */
+
+        res.status(201).json({
+            mensaje: 'Usuario registrado correctamente',
+            usuario: {
+                nombre: req.body.nombre,
+                correo: req.body.correo
+            }
+        });
+
+    }
+);
+
+// Exportar la aplicación
+module.exports = app;
